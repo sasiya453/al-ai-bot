@@ -1,22 +1,14 @@
-# A/L AI Question Solver Bot (Telegram + Gemini + Vercel + Supabase)
+# A/L AI Gemini Bot
 
-Photo → Full A/L-level explanation (Physics / Chemistry / Biology / Maths).
+Gemini 1.5 Flash 🤖 Telegram bot (Photo → Step-by-step explanation)
 
 ## Stack
 
-- Telegram Bot (webhook)
-- Vercel Serverless Functions (`/api`)
-- Gemini 1.5 Flash (Vision)
-- Supabase (DB, rate limiting, user language)
-- Node 18, JavaScript (ESM)
+- Telegram Bot (Webhook)
+- Gemini 1.5 Flash (v1beta REST API)
+- Node.js (Vercel Serverless)
 
----
+## Setup
 
-## 1. Setup
-
-### 1.1. Clone repo & install
-
-```bash
-git clone <your-repo-url> al-ai-bot
-cd al-ai-bot
-npm install
+1. `npm install` (no dependencies, fine)
+2. Create `.env`:
