@@ -4,7 +4,11 @@ import {
   checkAndIncrementLimit,
   getUserLanguage
 } from '../utils/limiter.js';
-import { askGeminiVision, extractSubjectFromAnswer } from './gemini.js';
+
+// CHANGED: use OCR + Groq instead of Gemini
+import { ocrImageBase64 } from '../utils/ocr.js';
+import { askGroqLLM, extractSubjectFromAnswer } from './groq.js';
+
 import { supabaseAdmin } from '../lib/supabase.js';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -118,16 +122,35 @@ export async function handleImageMessage(update) {
     return;
   }
 
-  // 5. Call Gemini Vision
+  // 5. OCR: image -> text
+  let extractedText;
+  try {
+    extractedText = await ocrImageBase64(imageData.base64);
+    if (!extractedText || !extractedText.trim()) {
+      await sendTelegramMessage(
+        chatId,
+        'I could not read any text from your image. Please send a clearer, higher-resolution photo.'
+      );
+      return;
+    }
+  } catch (err) {
+    console.error('OCR error', err);
+    await sendTelegramMessage(
+      chatId,
+      'Failed to read text from your image (OCR error). Please try again with a clearer photo.'
+    );
+    return;
+  }
+
+  // 6. LLM: solve the question text using Groq
   let answerText;
   try {
-    answerText = await askGeminiVision({
-      imageBase64: imageData.base64,
-      mimeType: imageData.mimeType,
+    answerText = await askGroqLLM({
+      questionText: extractedText,
       language
     });
   } catch (err) {
-    console.error('Gemini error', err);
+    console.error('Groq LLM error', err);
     await sendTelegramMessage(
       chatId,
       'AI service failed while analyzing your question. Please try again in a moment.'
@@ -135,7 +158,7 @@ export async function handleImageMessage(update) {
     return;
   }
 
-  // 6. Extract subject and log
+  // 7. Extract subject and log
   let subject = extractSubjectFromAnswer(answerText) || null;
   try {
     await supabaseAdmin.from('requests').insert({
@@ -146,6 +169,6 @@ export async function handleImageMessage(update) {
     console.error('Failed to insert request log', err);
   }
 
-  // 7. Send answer back to user (chunked)
+  // 8. Send answer back to user (chunked)
   await sendLongMessage(chatId, answerText);
 }
