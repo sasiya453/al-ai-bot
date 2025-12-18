@@ -1,0 +1,17 @@
+{
+  "name": "al-ai-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "node api/telegram-webhook.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.6.0",
+    "@supabase/supabase-js": "^2.48.0"
+  }
+}
